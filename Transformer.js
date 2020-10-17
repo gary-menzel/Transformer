@@ -1,14 +1,16 @@
 
 const Transformer = (handlers, context = {}) => {
   return (data, pipe) => {
-    return pipe.reduce((data, stage, step) => {
+    return pipe.reduce(async (data, stage, step) => {
       const [ processName, ...params ] = stage
       const timer = `${step} - ${processName}`
       const handler = handlers[processName]
       if (handler) {
         const f = (data) => handler.call(context, data, params)
         console.time(timer)
-        const next = data.then(f).catch(e => console.log('data.then error:', e)).finally(() => console.timeEnd(timer))
+        const next = await data
+          .then(f)
+          .catch(e => console.log('data.then error:', e)).finally(() => console.timeEnd(timer))
         return next
       } else console.log(`handler '${processName}' not found`, handlers)
       return data
